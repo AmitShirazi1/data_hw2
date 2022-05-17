@@ -49,7 +49,7 @@ def holiday_weekend_param(df):
         return 3
 
 def calc_t_diff(df):
-    return df[['t1'][0]] - df[['t2'][0]]
+    return df[['t2'][0]] - df[['t1'][0]]
 
 
 def add_new_columns(df):
@@ -109,20 +109,20 @@ def data_analysis(df):
     sorted_list = list(sorted_dict)
     list_length = len(sorted_list)
     count = 1
-    print("Highest correlated are:")
+    print("Highest correlated are: ")
     for x in range(list_length-1,list_length-6,-1):
-        print('{0}. {1} with {2}'.format(count, sorted_list[x] ,round(sorted_dict[sorted_list[x]],6))) 
+        print('{0}. {1} with {2}'.format(count, sorted_list[x] ,"%.6f" % round(sorted_dict[sorted_list[x]],6))) 
         count+=1
     print()
-    print("Lowest correlated are:")
+    print("Lowest correlated are: ")
     for x in range(5):
-        print('{0}. {1} with {2}'.format(x+1, sorted_list[x] ,round(sorted_dict[sorted_list[x]],6))) 
+        print('{0}. {1} with {2}'.format(x+1, sorted_list[x] ,"%.6f" % round(sorted_dict[sorted_list[x]],6))) 
     
     print()
     df_by_season = df.groupby(['season_name'],as_index = True).mean()
     
-    print("fall average t_diff is", round(df_by_season[["t_diff"][0]]["fall"],2))
-    print("spring average t_diff is", round(df_by_season[["t_diff"][0]]["spring"],2))
-    print("summer average t_diff is", round(df_by_season[["t_diff"][0]]["summer"],2))
-    print("winter average t_diff is", round(df_by_season[["t_diff"][0]]["winter"],2))
-    print("All average t_diff is", round(df[["t_diff"][0]].mean(),2))
+    print("fall average t_diff is", "%.2f" %round(df_by_season[["t_diff"][0]]["fall"],2))
+    print("spring average t_diff is","%.2f" % round(df_by_season[["t_diff"][0]]["spring"],2))
+    print("summer average t_diff is","%.2f" % round(df_by_season[["t_diff"][0]]["summer"],2))
+    print("winter average t_diff is","%.2f" % round(df_by_season[["t_diff"][0]]["winter"],2))
+    print("All average t_diff is","%.2f" % round(df[["t_diff"][0]].mean(),2))
