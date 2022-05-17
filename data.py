@@ -1,6 +1,7 @@
 from pickle import TRUE
 import re
 from time import time
+from numpy import correlate, true_divide
 import pandas as pd
 from datetime import datetime
 
@@ -80,5 +81,48 @@ def add_new_columns(df):
     # df['Month'] = pd.to_datetime(df['timestamp']).dt.month
     # df['Year'] = pd.to_datetime(df['timestamp']).dt.year
     
-    print(df)
+    # print(df)
     
+    
+def data_analysis(df):
+    """prints statistics on the transformed df"""
+    print("describe output:")
+    print(df.describe().to_string())
+    print()
+    print("corr output:")
+    corr = df.corr()
+    print(corr.to_string())
+    print()
+    
+    # A dict contains keys - tuples of features and values - the correlation between those features(for example: ('cnt', 't1' : 0.388798...))
+    # The corr values in the dict are absolute.
+    corr_dict = {}
+    features_names = corr.columns.values.tolist()
+    for i in range(len(features_names)):
+        for j in range(len(features_names)):
+            # features_names[i] != 'timestamp' and features_names[j] != 'timestamp' and features_names[i] != 'season_name' and features_names[j] != 'season_name' and
+            if(i < j):
+                corr_dict[(features_names[i], features_names[j])] = abs(corr[features_names[i]][features_names[j]])
+    # sort the dict by values
+    sorted_dict = dict(sorted(corr_dict.items(), key=lambda item: item[1]))
+    # print(sorted_dict)
+    sorted_list = list(sorted_dict)
+    list_length = len(sorted_list)
+    count = 1
+    print("Highest correlated are:")
+    for x in range(list_length-1,list_length-6,-1):
+        print('{0}. {1} with {2}'.format(count, sorted_list[x] ,round(sorted_dict[sorted_list[x]],6))) 
+        count+=1
+    print()
+    print("Lowest correlated are:")
+    for x in range(5):
+        print('{0}. {1} with {2}'.format(x+1, sorted_list[x] ,round(sorted_dict[sorted_list[x]],6))) 
+    
+    print()
+    df_by_season = df.groupby(['season_name'],as_index = True).mean()
+    
+    print("fall average t_diff is", round(df_by_season[["t_diff"][0]]["fall"],2))
+    print("spring average t_diff is", round(df_by_season[["t_diff"][0]]["spring"],2))
+    print("summer average t_diff is", round(df_by_season[["t_diff"][0]]["summer"],2))
+    print("winter average t_diff is", round(df_by_season[["t_diff"][0]]["winter"],2))
+    print("All average t_diff is", round(df[["t_diff"][0]].mean(),2))
