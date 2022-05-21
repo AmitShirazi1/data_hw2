@@ -12,6 +12,41 @@ def add_noise(data):
     noise = np.random.normal(loc=0, scale=0.01, size=data.shape)
     return data + noise
 
+def ccompute_centroids(X, idx, K):
+
+    n = X.shape[1]
+    elements = None
+    centroids = np.zeros((K, n))
+    for k in range(K):
+        elements = X[(idx == k).flatten()]
+        if elements.size != 0:
+            centroids[k] = np.mean(elements, axis=0, dtype=float)
+        else:
+            centroids[k] = np.full((1, n), np.nan, dtype=float)
+
+    return centroids
+
+def recompute_centroids(data, labels, k):
+    """
+    Recomputes new centroids based on the current assignment
+    :param data: data as numpy array of shape (n, 2)
+    :param labels: current assignments to clusters for each data point, as numpy array of size n
+    :param k: number of clusters
+    :return: numpy array of shape (k, 2)
+    """
+    number_of_registries = len(data)
+    centroids = np.zeros(shape=(k, 2), dtype=float)
+    current_cluster = np.zeros(shape=(number_of_registries, 2), dtype=float)
+    for cluster_number in range(k):
+        points_in_cluster_counter = 0
+        for index in range(number_of_registries):
+            if labels[index] == cluster_number:
+                current_cluster[points_in_cluster_counter][0] = data[index][0]
+                current_cluster[points_in_cluster_counter][1] = data[index][1]
+                points_in_cluster_counter += 1
+
+        centroids[cluster_number] = np.mean(current_cluster, axis=0, dtype=float)
+    return centroids
 
 def choose_initial_centroids(data, k):
     """
