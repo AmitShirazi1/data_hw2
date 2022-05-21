@@ -25,7 +25,6 @@ def main(argv):
         labels, centroids = cs.kmeans(normalized_noised_array, k)
         print(np.array_str(centroids, precision=3, suppress_small=True))
         path = "{0}{1}".format(path, k)
-        print(path)
         cs.visualize_results(normalized_noised_array, labels, centroids, path)
 
 if __name__ == '__main__':
