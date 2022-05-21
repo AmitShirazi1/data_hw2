@@ -2,10 +2,9 @@ from cProfile import label
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 np.random.seed(2)
 
-LONGEST_POSSIBLE_DISTANCE = 100
+LONGEST_POSSIBLE_DISTANCE = 1000000
 
 
 def add_noise(data):
@@ -82,12 +81,11 @@ def assign_to_clusters(data, centroids):
     for point_index in range(number_of_registries):
         min_distance = LONGEST_POSSIBLE_DISTANCE
         for centroid_index in range(len(centroids)):
-            distance_to_centroid = np.linalg.norm(data[point_index] - centroids[centroid_index])
-            if min_distance >= distance_to_centroid:
+            distance_to_centroid = dist(data[point_index], centroids[centroid_index])
+            if min_distance > distance_to_centroid:
                 min_distance = distance_to_centroid
                 labels[point_index] = centroid_index
 
-    #    labels.append(np.argmin(np.sum((i.reshape((1, 2)) - centroids) ** 2, axis=1)))
     return labels
 
 
@@ -110,9 +108,45 @@ def recompute_centroids(data, labels, k):
                 current_cluster[points_in_cluster_counter][1] = data[index][1]
                 points_in_cluster_counter += 1
 
-        centroids[cluster_number] = np.mean(current_cluster, axis=0)
-    # centroids.append, data[x] for x in range(len(data))  if labels[x] == c], axis=0)
+        centroids[cluster_number] = np.mean(current_cluster, axis=0, dtype=float)
     return centroids
+
+def ccompute_centroids(X, idx, K):
+    """Computes centroids from the mean of its cluster's members.
+
+    Computes centroids from the mean of its cluster's members if there are
+    any members for the centroid, else it returns an array of nan.
+
+    Args:
+        X (numpy.array): Features' dataset
+        idx (numpy.array): Column vector of assigned centroids' indices.
+        K (int): Number of centroids.
+
+    Returns:
+        numpy.array: Column vector of newly computed centroids
+    """
+
+    m, n = X.shape
+    elements = None
+    centroids = np.zeros((K, n))
+    for k in range(K):
+        elements = X[(idx == k).flatten()]
+        if elements.size != 0:
+            centroids[k] = np.mean(elements, axis=0, dtype=float)
+        else:
+            centroids[k] = np.full((1, n), np.nan, dtype=float)
+
+    return centroids 
+
+def compute_centroids(X, idx, k):
+    m, n = X.shape
+    centroids = np.zeros((k, n))
+    
+    for i in range(k):
+        indices = np.where(idx == i)
+        centroids[i,:] = (np.sum(X[indices,:], axis=1) / len(indices[0])).ravel()
+    
+    return centroids 
 
 
 def kmeans(data, k):
@@ -131,7 +165,7 @@ def kmeans(data, k):
     while not stabilized:
         labels = assign_to_clusters(data, current_centroids)
         previous_centroids = current_centroids.copy()
-        current_centroids = recompute_centroids(data, labels, k)
+        current_centroids = ccompute_centroids(data, labels, k)
 
         if np.array_equal(previous_centroids, current_centroids):
             stabilized = True
@@ -147,20 +181,11 @@ def visualize_results(data, labels, centroids, path):
     :param centroids: the final centroids of kmeans, as numpy array of shape (k, 2)
     :param path: path to save the figure to.
     """
-    colors = np.random.uniform(15, 80, len(centroids))
+    colors = "red"
     plt.title('{0} {1}'.format("Result for kmeans with k =", len(centroids)))
     plt.xlabel('cnt')
     plt.ylabel('hum')
-    plt.scatter(data[:, 0], data[:, 1], c=labels)
     plt.scatter(centroids[:, 0], centroids[:, 1], c=colors)
+    plt.scatter(data[:, 0], data[:, 1], c=labels)
     plt.show()
     # plt.savefig(path)
-
-# def closest_centroid(data, centroids):
-#     """returns an array containing the index to the nearest centroid for each point"""
-#     distances = np.sqrt(((data - centroids[:, np.new_axis])**2).sum(axis=2))
-#     return np.argmin(distances, axis=0)
-
-# def move_centroids(data, closest, centroids):
-#     """returns the new centroids assigned from the points closest to them"""
-#     return np.array([data[closest==k].mean(axis=0) for k in range(centroids.shape[0])])

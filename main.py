@@ -27,6 +27,5 @@ def main(argv):
         print(np.array_str(centroids, precision=3, suppress_small=True))
         cs.visualize_results(normalized_noised_array, labels, centroids, path)
 
-
 if __name__ == '__main__':
     main(sys.argv)
