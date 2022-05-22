@@ -1,7 +1,6 @@
-from cProfile import label
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
+
 np.random.seed(2)
 
 LONGEST_POSSIBLE_DISTANCE = 1000000
@@ -29,14 +28,11 @@ def choose_initial_centroids(data, k):
 
 # ====================
 def transform_data(df, features):
-    """
-    Performs the following transformations on df:
-        - selecting relevant features
-        - scaling
-        - adding noise
-    :param df: dataframe as was read from the original csv.
-    :param features: list of 2 features from the dataframe
-    :return: transformed data as numpy array of shape (n, 2)
+    """ Select relevant features from the data, return their values after scaling and normalization.
+
+    Keyword arguments:
+    df -- dataframe as was read from the original csv.
+    features -- list of 2 features from the dataframe
     """
 
     first_feature_values = list(df[[features[0]][0]])
@@ -56,13 +52,12 @@ def transform_data(df, features):
     return add_noise(normalized_values_array)
 
 
-# need to figure out whether it's needed
 def dist(x, y):
-    """
-    Euclidean distance between vectors x, y
-    :param x: numpy array of size n
-    :param y: numpy array of size n
-    :return: the euclidean distance
+    """ Calculate Euclidean distance between 2 vectors.
+
+    Keyword arguments:
+    x -- 1st vector
+    y -- 2nd vector
     """
     distance = (np.linalg.norm(x - y)) ** 2
 
@@ -70,18 +65,20 @@ def dist(x, y):
 
 
 def assign_to_clusters(data, centroids):
-    """
-    Assign each data point to a cluster based on current centroids
-    :param data: data as numpy array of shape (n, 2)
-    :param centroids: current centroids as numpy array of shape (k, 2)
-    :return: numpy array of size n
+    """ Assign each data point to a cluster based on current centroids, return array of indices indicating clusters.
+
+    Keyword arguments:
+    data -- numpy array of shape (n, 2)
+    centroids -- current centroids, numpy array of shape (k, 2)
     """
     number_of_registries = len(data)
     labels = np.zeros((number_of_registries,), dtype=int)
+
     for point_index in range(number_of_registries):
         min_distance = LONGEST_POSSIBLE_DISTANCE
         for centroid_index in range(len(centroids)):
             distance_to_centroid = dist(data[point_index], centroids[centroid_index])
+
             if min_distance > distance_to_centroid:
                 min_distance = distance_to_centroid
                 labels[point_index] = centroid_index
@@ -90,29 +87,28 @@ def assign_to_clusters(data, centroids):
 
 
 def recompute_centroids(data, labels, k):
-    """
-    Recomputes new centroids based on the current assignment
-    :param data: data as numpy array of shape (n, 2)
-    :param labels: current assignments to clusters for each data point, as numpy array of size n
-    :param k: number of clusters
-    :return: numpy array of shape (k, 2)
+    """ Recalculate new centroids based on the current clusters' assignment.
+
+    Keyword arguments:
+    data -- numpy array of shape (n, 2)
+    labels -- current assignments to clusters for each data point, numpy array of size n
+    k -- number of clusters
     """
     number_of_registries = data.shape[1]
     centroids = np.zeros((k, number_of_registries))
     for cluster_number in range(k):
         indices = np.where(labels == cluster_number)
-        centroids[cluster_number,:] = (np.sum(data[indices,:], axis=1) / len(indices[0])).ravel()
+        centroids[cluster_number, :] = (np.sum(data[indices, :], axis=1) / len(indices[0])).ravel()
 
     return centroids
 
+
 def kmeans(data, k):
-    """
-    Running kmeans clustering algorithm.
-    :param data: numpy array of shape (n, 2)
-    :param k: desired number of cluster
-    :return:
-    * labels - numpy array of size n, where each entry is the predicted label (cluster number)
-    * centroids - numpy array of shape (k, 2), centroid for each cluster.
+    """ Execute K-means clustering algorithm, return array of indices indicating clusters and array of their centroids.
+
+    Keyword arguments:
+    data -- numpy array of shape (n, 2)
+    k -- number of clusters
     """
     current_centroids = choose_initial_centroids(data, k)
     labels = np.zeros((len(data),), dtype=int)
@@ -130,17 +126,18 @@ def kmeans(data, k):
 
 
 def visualize_results(data, labels, centroids, path):
+    """ Visualize the K-means' data points assignment to clusters in a colorful graph, output it to a file.
+
+    Keyword arguments:
+    data -- numpy array of shape (n, 2)
+    labels -- final assignment to clusters, numpy array of size n
+    centroids -- final centroids' coordinates, numpy array of shape (k, 2)
+    path -- path to save the output to.
     """
-    Visualizing results of the kmeans model, and saving the figure.
-    :param data: data as numpy array of shape (n, 2)
-    :param labels: the final labels of kmeans, as numpy array of size n
-    :param centroids: the final centroids of kmeans, as numpy array of shape (k, 2)
-    :param path: path to save the figure to.
-    """
-    plt.title('{0} {1}'.format("Result for kmeans with k =", len(centroids)))
+    plt.title("Result for kmeans with k = {}".format(len(centroids)))
     plt.xlabel('cnt')
     plt.ylabel('hum')
     plt.scatter(centroids[:, 0], centroids[:, 1])
     plt.scatter(data[:, 0], data[:, 1], c=labels)
-    plt.savefig(path, dpi = 300)
+    plt.savefig(path, dpi=300)
     # plt.show()
